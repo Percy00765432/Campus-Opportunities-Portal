@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__stitch__list_projects",
+      "Bash(npm run:*)"
+    ]
+  }
+}
