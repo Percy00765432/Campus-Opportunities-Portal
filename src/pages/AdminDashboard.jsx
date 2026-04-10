@@ -33,7 +33,8 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
 
   const [activeNav, setActiveNav]         = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen]     = useState(true)
+  const [sidebarOpen, setSidebarOpen]       = useState(true)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [searchVal, setSearchVal]         = useState('')
   const [activeTab, setActiveTab]         = useState('all')
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
@@ -305,7 +306,7 @@ export default function AdminDashboard() {
 
   // Shared stat cards used in dashboard + applications views
   const statCards = (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {[
         { label: 'Total Opportunities', value: oppsLoading ? '…' : counts.total,   icon: 'explore',         delta: `${opportunities.filter(o => o.status === 'active').length} active`, color: 'text-primary bg-primary/10' },
         { label: 'Total Applications',  value: appsLoading ? '…' : counts.active,  icon: 'assignment',      delta: 'All time',        color: 'text-secondary bg-secondary-container' },
@@ -328,8 +329,39 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background flex font-body">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-60' : 'w-16'} flex-shrink-0 flex flex-col bg-surface/80 backdrop-blur-glass transition-all duration-300 relative z-10`}>
+      {/* Mobile sidebar overlay */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileSidebarOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-64 flex flex-col bg-surface shadow-elevated z-50">
+            <div className="flex items-center gap-3 px-5 py-5">
+              <span className="material-symbols-outlined text-primary text-2xl flex-shrink-0">school</span>
+              <div>
+                <p className="font-headline text-on-surface font-bold text-sm leading-tight">Academic Atelier</p>
+                <p className="text-on-surface-variant text-xs font-label">Administrator Edition</p>
+              </div>
+            </div>
+            <nav className="flex-1 px-2 py-2 space-y-0.5">
+              {NAV_ITEMS.map((item) => (
+                <button key={item.id} onClick={() => { setActiveNav(item.id); setMobileSidebarOpen(false) }}
+                  className={`nav-item w-full justify-start ${activeNav === item.id ? 'active' : ''}`}>
+                  <span className="material-symbols-outlined text-[18px] flex-shrink-0">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </nav>
+            <div className="px-2 pb-4 space-y-0.5">
+              <button onClick={handleLogout} className="nav-item w-full justify-start text-error hover:bg-error/10 hover:text-error">
+                <span className="material-symbols-outlined text-[18px] flex-shrink-0">logout</span>
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className={`hidden md:flex flex-col flex-shrink-0 ${sidebarOpen ? 'w-60' : 'w-16'} bg-surface/80 backdrop-blur-glass transition-all duration-300 relative z-10`}>
         <div className={`flex items-center ${sidebarOpen ? 'gap-3 px-5' : 'justify-center px-2'} py-5`}>
           <span className="material-symbols-outlined text-primary text-2xl flex-shrink-0">school</span>
           {sidebarOpen && (
@@ -377,17 +409,25 @@ export default function AdminDashboard() {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="flex items-center justify-between px-8 py-4 bg-surface/80 backdrop-blur-glass sticky top-0 z-10">
-          <div>
-            <h2 className="font-headline text-on-surface font-bold text-lg leading-tight">
-              {NAV_ITEMS.find((n) => n.id === activeNav)?.label ?? 'Dashboard'}
-            </h2>
-            <p className="text-on-surface-variant text-xs font-label">
-              {user?.department}{user?.title ? ` · ${user.title}` : ''}
-            </p>
-          </div>
+        <header className="flex items-center justify-between px-4 md:px-8 py-4 bg-surface/80 backdrop-blur-glass sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="relative">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px] text-on-surface-variant">menu</span>
+            </button>
+            <div>
+              <h2 className="font-headline text-on-surface font-bold text-base md:text-lg leading-tight">
+                {NAV_ITEMS.find((n) => n.id === activeNav)?.label ?? 'Dashboard'}
+              </h2>
+              <p className="text-on-surface-variant text-xs font-label hidden md:block">
+                {user?.department}{user?.title ? ` · ${user.title}` : ''}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="relative hidden md:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]">search</span>
               <input
                 type="text"
@@ -406,7 +446,7 @@ export default function AdminDashboard() {
                 {counts.pending > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error" />}
               </button>
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 card p-0 overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] card p-0 overflow-hidden z-50">
                   <div className="px-4 py-3 bg-surface-container-low flex items-center justify-between">
                     <p className="text-sm font-headline font-bold text-on-surface">Notifications</p>
                     {counts.pending > 0 && <span className="text-xs font-label font-semibold text-error bg-error/10 px-2 py-0.5 rounded-full">{counts.pending} pending</span>}
@@ -436,7 +476,7 @@ export default function AdminDashboard() {
               className="btn-primary text-sm"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
-              New Opportunity
+              <span className="hidden sm:inline">New Opportunity</span>
             </button>
             <div ref={profileMenuRef} className="relative">
               <div
@@ -471,14 +511,14 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        <main className="flex-1 px-8 py-6 overflow-y-auto scrollbar-hide space-y-6">
+        <main className="flex-1 px-4 py-4 md:px-8 md:py-6 pb-20 md:pb-6 overflow-y-auto scrollbar-hide space-y-6">
 
           {/* ── DASHBOARD ─────────────────────────────────────── */}
           {activeNav === 'dashboard' && (
             <>
               {statCards}
 
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Opportunities list */}
                 <div className="card overflow-hidden">
                   <div className="px-5 py-4 bg-surface-container-low flex items-center justify-between">
@@ -565,7 +605,7 @@ export default function AdminDashboard() {
                       View all <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                     </button>
                   </div>
-                  <table className="w-full">
+                  <div className="overflow-x-auto"><table className="w-full">
                     <thead>
                       <tr className="bg-surface-container">
                         {['Student', 'Opportunity', 'Submitted', 'Status', 'Action'].map((h) => (
@@ -611,7 +651,7 @@ export default function AdminDashboard() {
                         )
                       })}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               )}
 
@@ -622,7 +662,7 @@ export default function AdminDashboard() {
                 <div className="relative">
                   <p className="font-headline text-white text-xl font-extrabold mb-1">"Empowering the Next Generation of Scholars"</p>
                   <p className="text-white/70 text-sm font-label mb-6">Your oversight ensures every student has a fair pathway to excellence.</p>
-                  <div className="flex items-center gap-10">
+                  <div className="flex items-center gap-6 flex-wrap">
                     {[
                       { value: opportunities.filter(o => o.status === 'active').length || '—', label: 'Active Opportunities' },
                       { value: counts.approved || '—',     label: 'Students Placed' },
@@ -659,7 +699,7 @@ export default function AdminDashboard() {
                     <p className="text-on-surface-variant text-sm font-label">No opportunities yet. Create one below.</p>
                   </div>
                 ) : (
-                  <table className="w-full">
+                  <div className="overflow-x-auto"><table className="w-full">
                     <thead>
                       <tr className="bg-surface-container">
                         {['Title', 'Category', 'Department', 'Deadline', 'Spots', 'Status', 'Actions'].map((h) => (
@@ -711,7 +751,7 @@ export default function AdminDashboard() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
 
@@ -751,7 +791,7 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
-                <form onSubmit={handleFormSubmit} className="p-6 grid grid-cols-2 gap-4">
+                <form onSubmit={handleFormSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Opportunity Title *</label>
                     <input required type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Summer Research Fellowship 2025" className="input-field" />
@@ -781,15 +821,15 @@ export default function AdminDashboard() {
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Stipend / Compensation</label>
                     <input type="text" value={form.stipend} onChange={(e) => setForm((f) => ({ ...f, stipend: e.target.value }))} placeholder="e.g. $3,000 or Unpaid" className="input-field" />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Description *</label>
                     <textarea required rows={4} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Describe the opportunity, responsibilities, and what students will gain…" className="input-field resize-none" />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Eligibility Criteria</label>
                     <input type="text" value={form.eligibility} onChange={(e) => setForm((f) => ({ ...f, eligibility: e.target.value }))} placeholder="e.g. Open to 2nd and 3rd year undergrads with GPA ≥ 3.0" className="input-field" />
                   </div>
-                  <div className="col-span-2 flex items-center gap-3 pt-2">
+                  <div className="col-span-full flex items-center gap-3 pt-2">
                     <button type="submit" disabled={formLoading} className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                       {formLoading ? (
                         <><span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>{editingOpp ? 'Saving…' : 'Publishing…'}</>
@@ -820,12 +860,12 @@ export default function AdminDashboard() {
                     <span className="material-symbols-outlined text-primary text-[18px]">assignment</span>
                     Applications
                   </p>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     {['all', 'pending', 'reviewing', 'approved', 'rejected'].map((t) => (
                       <button
                         key={t}
                         onClick={() => setActiveTab(t)}
-                        className={`px-3 py-1 rounded-full text-xs font-label font-semibold transition-colors ${
+                        className={`px-2.5 py-1 rounded-full text-xs font-label font-semibold transition-colors ${
                           activeTab === t ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-container'
                         }`}
                       >
@@ -844,7 +884,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <>
-                    <table className="w-full">
+                    <div className="overflow-x-auto"><table className="w-full">
                       <thead>
                         <tr className="bg-surface-container">
                           {['Student', 'Opportunity', 'Category', 'Submitted', 'Status', 'Action'].map((h) => (
@@ -894,7 +934,7 @@ export default function AdminDashboard() {
                           )
                         })}
                       </tbody>
-                    </table>
+                    </table></div>
                     <div className="px-6 py-3 bg-surface-container-low">
                       <p className="text-xs text-on-surface-variant font-label">Showing {filteredApps.length} of {applications.length} applications</p>
                     </div>
@@ -945,7 +985,7 @@ export default function AdminDashboard() {
                       <p className="text-sm font-label text-error">{addUserError}</p>
                     </div>
                   )}
-                  <form onSubmit={handleAddUser} className="p-6 grid grid-cols-2 gap-4">
+                  <form onSubmit={handleAddUser} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Full Name *</label>
                       <input required type="text" value={addUserForm.name} onChange={(e) => setAddUserForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Jane Smith" className="input-field" />
@@ -966,11 +1006,11 @@ export default function AdminDashboard() {
                       <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Temporary Password *</label>
                       <input required type="password" minLength={6} value={addUserForm.password} onChange={(e) => setAddUserForm((f) => ({ ...f, password: e.target.value }))} placeholder="Min. 6 characters" className="input-field" />
                     </div>
-                    <div className="col-span-2">
+                    <div className="col-span-full">
                       <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Department</label>
                       <input type="text" value={addUserForm.department} onChange={(e) => setAddUserForm((f) => ({ ...f, department: e.target.value }))} placeholder="e.g. Computer Science" className="input-field" />
                     </div>
-                    <div className="col-span-2 flex items-center gap-3 pt-2">
+                    <div className="col-span-full flex items-center gap-3 pt-2">
                       <button type="submit" disabled={addUserLoading} className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                         {addUserLoading ? (
                           <><span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>Creating…</>
@@ -984,7 +1024,7 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { label: 'Total Users',    value: usersLoading ? '…' : users.length,                                     icon: 'group',                color: 'text-primary bg-primary/10' },
                   { label: 'Students',       value: usersLoading ? '…' : users.filter(u => u.role === 'student').length,    icon: 'person',               color: 'text-secondary bg-secondary-container' },
@@ -1029,7 +1069,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <>
-                    <table className="w-full">
+                    <div className="overflow-x-auto"><table className="w-full">
                       <thead>
                         <tr className="bg-surface-container">
                           {['User', 'Role', 'Department', 'Joined', 'Actions'].map((h) => (
@@ -1089,7 +1129,7 @@ export default function AdminDashboard() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                     <div className="px-6 py-3 bg-surface-container-low">
                       <p className="text-xs text-on-surface-variant font-label">{users.length} users total</p>
                     </div>
@@ -1109,7 +1149,7 @@ export default function AdminDashboard() {
 
               {statCards}
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Applications by status */}
                 <div className="card p-5">
                   <p className="section-title">Applications by Status</p>
@@ -1280,6 +1320,24 @@ export default function AdminDashboard() {
 
         </main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-sm border-t border-outline-variant/20 z-30">
+        <div className="flex items-center justify-around py-1">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveNav(item.id)}
+              className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg transition-all min-w-0 flex-1 ${
+                activeNav === item.id ? 'text-primary' : 'text-on-surface-variant'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+              <span className="text-[9px] font-label font-semibold leading-tight truncate w-full text-center">{item.label.split(' ')[0]}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   )
 }

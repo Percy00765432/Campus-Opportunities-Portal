@@ -33,7 +33,8 @@ export default function StudentDashboard() {
   const navigate = useNavigate()
 
   const [activeNav, setActiveNav]     = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen]   = useState(true)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [notifOpen, setNotifOpen]     = useState(false)
   const notifRef = useRef(null)
   const [searchVal, setSearchVal]     = useState('')
@@ -241,9 +242,40 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-background flex font-body">
-      {/* Sidebar */}
+      {/* Mobile sidebar overlay */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileSidebarOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-64 flex flex-col bg-surface backdrop-blur-glass shadow-elevated z-50">
+            <div className="flex items-center gap-3 px-5 py-5">
+              <span className="material-symbols-outlined text-primary text-2xl flex-shrink-0">school</span>
+              <div>
+                <p className="font-headline text-on-surface font-bold text-sm leading-tight">Academic Atelier</p>
+                <p className="text-on-surface-variant text-xs font-label">Student Portal</p>
+              </div>
+            </div>
+            <nav className="flex-1 px-2 py-2 space-y-0.5">
+              {NAV_ITEMS.map((item) => (
+                <button key={item.id} onClick={() => { setActiveNav(item.id); setMobileSidebarOpen(false) }}
+                  className={`nav-item w-full justify-start ${activeNav === item.id ? 'active' : ''}`}>
+                  <span className="material-symbols-outlined text-[18px] flex-shrink-0">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </nav>
+            <div className="px-2 pb-4 space-y-0.5">
+              <button onClick={handleLogout} className="nav-item w-full justify-start text-error hover:bg-error/10 hover:text-error">
+                <span className="material-symbols-outlined text-[18px] flex-shrink-0">logout</span>
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
       <aside
-        className={`${sidebarOpen ? 'w-60' : 'w-16'} flex-shrink-0 flex flex-col bg-surface/80 backdrop-blur-glass transition-all duration-300 relative z-10`}
+        className={`hidden md:flex flex-col flex-shrink-0 ${sidebarOpen ? 'w-60' : 'w-16'} bg-surface/80 backdrop-blur-glass transition-all duration-300 relative z-10`}
       >
         <div className={`flex items-center ${sidebarOpen ? 'gap-3 px-5' : 'justify-center px-2'} py-5`}>
           <span className="material-symbols-outlined text-primary text-2xl flex-shrink-0">school</span>
@@ -295,18 +327,26 @@ export default function StudentDashboard() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="flex items-center justify-between px-8 py-4 bg-surface/80 backdrop-blur-glass sticky top-0 z-10">
-          <div>
-            <h2 className="font-headline text-on-surface font-bold text-lg leading-tight">
-              Good morning, {user?.name?.split(' ')[0]} 👋
-            </h2>
-            <p className="text-on-surface-variant text-xs font-label">
-              {user?.department}{user?.year ? ` · ${user.year}` : ''}
-            </p>
+        <header className="flex items-center justify-between px-4 md:px-8 py-4 bg-surface/80 backdrop-blur-glass sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px] text-on-surface-variant">menu</span>
+            </button>
+            <div>
+              <h2 className="font-headline text-on-surface font-bold text-base md:text-lg leading-tight">
+                Good morning, {user?.name?.split(' ')[0]} 👋
+              </h2>
+              <p className="text-on-surface-variant text-xs font-label hidden md:block">
+                {user?.department}{user?.year ? ` · ${user.year}` : ''}
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="relative hidden md:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]">search</span>
               <input
                 type="text"
@@ -328,7 +368,7 @@ export default function StudentDashboard() {
                 )}
               </button>
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-72 card p-0 overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] card p-0 overflow-hidden z-50">
                   <div className="px-4 py-3 bg-surface-container-low">
                     <p className="text-sm font-headline font-bold text-on-surface">Notifications</p>
                   </div>
@@ -355,12 +395,12 @@ export default function StudentDashboard() {
         </header>
 
         {/* Page body */}
-        <main className={`flex-1 ${activeNav === 'messages' ? 'overflow-hidden flex flex-col' : 'px-8 py-6 overflow-y-auto scrollbar-hide'}`}>
+        <main className={`flex-1 ${activeNav === 'messages' ? 'overflow-hidden flex flex-col' : 'px-4 py-4 md:px-8 md:py-6 pb-20 md:pb-6 overflow-y-auto scrollbar-hide'}`}>
 
           {/* ── DASHBOARD ─────────────────────────────────────── */}
           {activeNav === 'dashboard' && (
             <>
-              <div className="grid grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 {[
                   { label: 'Opportunities Available', value: oppsLoading ? '…' : opportunities.length, icon: 'explore', delta: 'Active now' },
                   { label: 'Applications Submitted',  value: appsLoading  ? '…' : applications.length,  icon: 'assignment', delta: `${applications.filter(a=>a.status==='pending').length} pending` },
@@ -380,9 +420,9 @@ export default function StudentDashboard() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {featured ? (
-                  <div className="col-span-2 bg-gradient-primary rounded-xl p-6 relative overflow-hidden">
+                  <div className="md:col-span-2 bg-gradient-primary rounded-xl p-6 relative overflow-hidden">
                     <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10" />
                     <div className="absolute bottom-4 right-16 w-28 h-28 rounded-full bg-white/5" />
                     <div className="relative">
@@ -439,7 +479,7 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <div className="col-span-2 bg-surface-container rounded-xl p-6 flex items-center justify-center">
+                  <div className="md:col-span-2 bg-surface-container rounded-xl p-6 flex items-center justify-center">
                     <p className="text-on-surface-variant text-sm font-label">
                       {oppsLoading ? 'Loading opportunities…' : 'No opportunities available yet.'}
                     </p>
@@ -479,7 +519,7 @@ export default function StudentDashboard() {
                   <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                 </button>
               </div>
-              <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 {opportunities.slice(0, 3).map((opp) => {
                   const meta = CATEGORY_ICON[opp.category] ?? { icon: 'work', color: 'text-primary bg-primary/10' }
                   return (
@@ -535,7 +575,7 @@ export default function StudentDashboard() {
                       <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                     </button>
                   </div>
-                  <table className="w-full">
+                  <div className="overflow-x-auto"><table className="w-full">
                     <thead>
                       <tr className="bg-surface-container">
                         {['Opportunity', 'Category', 'Applied', 'Status', ''].map((h) => (
@@ -570,7 +610,7 @@ export default function StudentDashboard() {
                         )
                       })}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               )}
             </>
@@ -579,7 +619,7 @@ export default function StudentDashboard() {
           {/* ── OPPORTUNITIES ─────────────────────────────────── */}
           {activeNav === 'opportunities' && (
             <>
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
                   <h2 className="font-headline text-on-surface font-bold text-xl">Browse Opportunities</h2>
                   <p className="text-on-surface-variant text-xs font-label mt-0.5">{opportunities.length} active opportunities available</p>
@@ -602,7 +642,7 @@ export default function StudentDashboard() {
               </div>
 
               {oppsLoading ? (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[1,2,3,4,5,6].map((i) => (
                     <div key={i} className="card p-5 animate-pulse">
                       <div className="h-4 bg-surface-container rounded w-3/4 mb-2" />
@@ -616,7 +656,7 @@ export default function StudentDashboard() {
                   <p className="text-on-surface-variant text-sm font-label">No opportunities match your search.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {filtered.map((opp) => {
                     const meta = CATEGORY_ICON[opp.category] ?? { icon: 'work', color: 'text-primary bg-primary/10' }
                     return (
@@ -676,7 +716,7 @@ export default function StudentDashboard() {
                 <p className="text-on-surface-variant text-xs font-label mt-0.5">{applications.length} total applications</p>
               </div>
 
-              <div className="grid grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
                   { label: 'Submitted',    value: applications.length, icon: 'assignment', color: 'text-primary bg-primary/10' },
                   { label: 'Pending',      value: applications.filter(a=>a.status==='pending').length,   icon: 'schedule',      color: 'text-secondary bg-secondary-container' },
@@ -713,7 +753,7 @@ export default function StudentDashboard() {
                     </button>
                   </div>
                 ) : (
-                  <table className="w-full">
+                  <div className="overflow-x-auto"><table className="w-full">
                     <thead>
                       <tr className="bg-surface-container">
                         {['Opportunity', 'Department', 'Applied', 'Status', ''].map((h) => (
@@ -751,7 +791,7 @@ export default function StudentDashboard() {
                         )
                       })}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
             </>
@@ -787,7 +827,7 @@ export default function StudentDashboard() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {opportunities.filter((o) => bookmarks.has(o.id)).map((opp) => {
                     const meta = CATEGORY_ICON[opp.category] ?? { icon: 'work', color: 'text-primary bg-primary/10' }
                     return (
@@ -838,9 +878,9 @@ export default function StudentDashboard() {
 
           {/* ── MESSAGES ─────────────────────────────────────── */}
           {activeNav === 'messages' && (
-            <div className="flex h-[calc(100vh-72px)] -mx-8 -mt-6">
+            <div className="flex h-[calc(100vh-72px)] -mx-4 md:-mx-8 -mt-4 md:-mt-6">
               {/* Left panel: contacts */}
-              <div className="w-72 flex-shrink-0 bg-surface border-r border-outline-variant/20 flex flex-col">
+              <div className={`${selectedChatUser ? 'hidden md:flex' : 'flex'} w-full md:w-72 flex-shrink-0 flex-col bg-surface border-r border-outline-variant/20`}>
                 <div className="px-4 pt-5 pb-3 border-b border-outline-variant/20">
                   <p className="font-headline text-on-surface font-bold text-base mb-3">Messages</p>
                   <div className="relative">
@@ -912,7 +952,10 @@ export default function StudentDashboard() {
               {/* Right panel: chat */}
               {selectedChatUser ? (
                 <div className="flex-1 flex flex-col bg-background">
-                  <div className="px-6 py-4 bg-surface border-b border-outline-variant/20 flex items-center gap-3">
+                  <div className="px-4 md:px-6 py-4 bg-surface border-b border-outline-variant/20 flex items-center gap-3">
+                    <button className="md:hidden text-on-surface-variant hover:text-on-surface" onClick={() => setSelectedChatUser(null)}>
+                      <span className="material-symbols-outlined">arrow_back</span>
+                    </button>
                     <div className="w-9 h-9 rounded-full bg-tertiary/15 flex items-center justify-center text-tertiary text-xs font-bold flex-shrink-0">
                       {selectedChatUser.avatar || selectedChatUser.name?.[0] || '?'}
                     </div>
@@ -1032,6 +1075,24 @@ export default function StudentDashboard() {
 
         </main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-sm border-t border-outline-variant/20 z-30">
+        <div className="flex items-center justify-around py-1 safe-bottom">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveNav(item.id)}
+              className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg transition-all min-w-0 flex-1 ${
+                activeNav === item.id ? 'text-primary' : 'text-on-surface-variant'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+              <span className="text-[9px] font-label font-semibold leading-tight truncate w-full text-center">{item.label.split(' ')[0]}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   )
 }

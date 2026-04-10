@@ -54,6 +54,7 @@ export default {
       boxShadow: {
         editorial: '0 20px 40px rgba(44, 52, 55, 0.06)',
         soft: '0 4px 16px rgba(44, 52, 55, 0.04)',
+        elevated: '0 8px 32px rgba(44, 52, 55, 0.12)',
       },
       backdropBlur: {
         glass: '16px',

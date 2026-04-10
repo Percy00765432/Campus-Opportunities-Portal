@@ -30,7 +30,8 @@ export default function MentorDashboard() {
 
   // UI state
   const [activeNav, setActiveNav]             = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen]         = useState(true)
+  const [sidebarOpen, setSidebarOpen]             = useState(true)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [focusForm, setFocusForm]             = useState(false)
 
@@ -279,8 +280,39 @@ export default function MentorDashboard() {
   return (
     <div className="min-h-screen bg-background flex font-body">
 
-      {/* ── Sidebar ──────────────────────────────────────── */}
-      <aside className={`${sidebarOpen ? 'w-60' : 'w-16'} flex-shrink-0 flex flex-col bg-surface/80 backdrop-blur-glass transition-all duration-300 relative z-10`}>
+      {/* Mobile sidebar overlay */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileSidebarOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-64 flex flex-col bg-surface shadow-elevated z-50">
+            <div className="flex items-center gap-3 px-5 py-5">
+              <span className="material-symbols-outlined text-tertiary text-2xl flex-shrink-0">psychology</span>
+              <div>
+                <p className="font-headline text-on-surface font-bold text-sm leading-tight">Academic Atelier</p>
+                <p className="text-on-surface-variant text-xs font-label">Mentor Portal</p>
+              </div>
+            </div>
+            <nav className="flex-1 px-2 py-2 space-y-0.5">
+              {NAV_ITEMS.map((item) => (
+                <button key={item.id} onClick={() => { setActiveNav(item.id); setMobileSidebarOpen(false) }}
+                  className={`nav-item w-full justify-start ${activeNav === item.id ? 'active' : ''}`}>
+                  <span className="material-symbols-outlined text-[18px] flex-shrink-0">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </nav>
+            <div className="px-2 pb-4 space-y-0.5">
+              <button onClick={handleLogout} className="nav-item w-full justify-start text-error hover:bg-error/10 hover:text-error">
+                <span className="material-symbols-outlined text-[18px] flex-shrink-0">logout</span>
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* ── Desktop Sidebar ──────────────────────────────── */}
+      <aside className={`hidden md:flex flex-col flex-shrink-0 ${sidebarOpen ? 'w-60' : 'w-16'} bg-surface/80 backdrop-blur-glass transition-all duration-300 relative z-10`}>
         <div className={`flex items-center ${sidebarOpen ? 'gap-3 px-5' : 'justify-center px-2'} py-5`}>
           <span className="material-symbols-outlined text-tertiary text-2xl flex-shrink-0">psychology</span>
           {sidebarOpen && (
@@ -332,17 +364,25 @@ export default function MentorDashboard() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Top bar */}
-        <header className="flex items-center justify-between px-8 py-4 bg-surface/80 backdrop-blur-glass sticky top-0 z-10">
-          <div>
-            <h2 className="font-headline text-on-surface font-bold text-lg leading-tight">
-              {NAV_ITEMS.find((n) => n.id === activeNav)?.label ?? 'Dashboard'}
-            </h2>
-            <p className="text-on-surface-variant text-xs font-label">
-              {user?.department}{user?.title ? ` · ${user.title}` : ' · Mentor'}
-            </p>
+        <header className="flex items-center justify-between px-4 md:px-8 py-4 bg-surface/80 backdrop-blur-glass sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px] text-on-surface-variant">menu</span>
+            </button>
+            <div>
+              <h2 className="font-headline text-on-surface font-bold text-base md:text-lg leading-tight">
+                {NAV_ITEMS.find((n) => n.id === activeNav)?.label ?? 'Dashboard'}
+              </h2>
+              <p className="text-on-surface-variant text-xs font-label hidden md:block">
+                {user?.department}{user?.title ? ` · ${user.title}` : ' · Mentor'}
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <div ref={notifRef} className="relative">
               <button
                 onClick={() => setNotifOpen((v) => !v)}
@@ -354,7 +394,7 @@ export default function MentorDashboard() {
                 )}
               </button>
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 card p-0 overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] card p-0 overflow-hidden z-50">
                   <div className="px-4 py-3 bg-surface-container-low flex items-center justify-between">
                     <p className="text-sm font-headline font-bold text-on-surface">Notifications</p>
                     {myApplications.filter((a) => a.status === 'pending' || a.status === 'reviewing').length > 0 && (
@@ -397,7 +437,7 @@ export default function MentorDashboard() {
               className="btn-primary text-sm"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
-              New Opportunity
+              <span className="hidden sm:inline">New Opportunity</span>
             </button>
             <div ref={profileMenuRef} className="relative">
               <div
@@ -433,7 +473,7 @@ export default function MentorDashboard() {
         </header>
 
         {/* Page body */}
-        <main className={`flex-1 ${activeNav === 'messages' ? 'overflow-hidden' : 'px-8 py-6 overflow-y-auto scrollbar-hide space-y-6'}`}>
+        <main className={`flex-1 ${activeNav === 'messages' ? 'overflow-hidden' : 'px-4 py-4 md:px-8 md:py-6 pb-20 md:pb-6 overflow-y-auto scrollbar-hide space-y-6'}`}>
 
           {/* ── DASHBOARD ─────────────────────────────────── */}
           {activeNav === 'dashboard' && (
@@ -449,7 +489,7 @@ export default function MentorDashboard() {
                   <p className="text-white/70 text-sm font-label mb-4">
                     {user?.department ? `${user.department} · ` : ''}Mentor Portal
                   </p>
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-4 flex-wrap">
                     {[
                       { value: counts.activeOpps,  label: 'Active Opportunities' },
                       { value: counts.totalApps,   label: 'Applications Received' },
@@ -466,7 +506,7 @@ export default function MentorDashboard() {
               </div>
 
               {/* Stat cards */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { label: 'Active Opportunities', value: oppsLoading ? '…' : counts.activeOpps,  icon: 'explore',         color: 'text-tertiary bg-tertiary-container' },
                   { label: 'Total Applications',   value: appsLoading ? '…' : counts.totalApps,   icon: 'assignment',      color: 'text-primary bg-primary/10' },
@@ -486,9 +526,9 @@ export default function MentorDashboard() {
               </div>
 
               {/* Recent applications + quick actions */}
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Recent applications */}
-                <div className="col-span-2 card overflow-hidden">
+                <div className="md:col-span-2 card overflow-hidden">
                   <div className="px-5 py-4 bg-surface-container-low flex items-center justify-between">
                     <p className="section-title mb-0">Recent Applications</p>
                     <button onClick={() => setActiveNav('applications')} className="text-xs text-primary font-label font-semibold hover:underline">View all →</button>
@@ -501,7 +541,7 @@ export default function MentorDashboard() {
                       <p className="text-on-surface-variant text-sm font-label">No applications yet. Post opportunities to get started.</p>
                     </div>
                   ) : (
-                    <table className="w-full">
+                    <div className="overflow-x-auto"><table className="w-full">
                       <thead>
                         <tr className="bg-surface-container">
                           {['Student', 'Opportunity', 'Status'].map((h) => (
@@ -532,7 +572,7 @@ export default function MentorDashboard() {
                           )
                         })}
                       </tbody>
-                    </table>
+                    </table></div>
                   )}
                 </div>
 
@@ -581,7 +621,7 @@ export default function MentorDashboard() {
                     <p className="text-on-surface-variant text-sm font-label">You haven't posted any opportunities yet. Use the form below to get started.</p>
                   </div>
                 ) : (
-                  <table className="w-full">
+                  <div className="overflow-x-auto"><table className="w-full">
                     <thead>
                       <tr className="bg-surface-container">
                         {['Title', 'Category', 'Deadline', 'Spots', 'Status', 'Actions'].map((h) => (
@@ -632,7 +672,7 @@ export default function MentorDashboard() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
 
@@ -670,7 +710,7 @@ export default function MentorDashboard() {
                     <p className="text-sm font-label text-error">{formError}</p>
                   </div>
                 )}
-                <form onSubmit={handleFormSubmit} className="p-6 grid grid-cols-2 gap-4">
+                <form onSubmit={handleFormSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Title *</label>
                     <input required type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Research Fellowship 2025" className="input-field" />
@@ -700,15 +740,15 @@ export default function MentorDashboard() {
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Stipend / Compensation</label>
                     <input type="text" value={form.stipend} onChange={(e) => setForm((f) => ({ ...f, stipend: e.target.value }))} placeholder="e.g. $2,000 or Unpaid" className="input-field" />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Description *</label>
                     <textarea required rows={4} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Describe the opportunity, responsibilities, and what students will gain…" className="input-field resize-none" />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Eligibility</label>
                     <input type="text" value={form.eligibility} onChange={(e) => setForm((f) => ({ ...f, eligibility: e.target.value }))} placeholder="e.g. Open to 2nd and 3rd year students with GPA ≥ 3.0" className="input-field" />
                   </div>
-                  <div className="col-span-2 flex items-center gap-3 pt-2">
+                  <div className="col-span-full flex items-center gap-3 pt-2">
                     <button type="submit" disabled={formLoading} className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                       {formLoading
                         ? <><span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>{editingOpp ? 'Saving…' : 'Publishing…'}</>
@@ -740,7 +780,7 @@ export default function MentorDashboard() {
                     <p className="text-on-surface-variant text-sm font-label">No applications received yet.</p>
                   </div>
                 ) : (
-                  <table className="w-full">
+                  <div className="overflow-x-auto"><table className="w-full">
                     <thead>
                       <tr className="bg-surface-container">
                         {['Student', 'Opportunity', 'Applied', 'Status', 'Action'].map((h) => (
@@ -801,7 +841,7 @@ export default function MentorDashboard() {
                         )
                       })}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
             </>
@@ -809,9 +849,9 @@ export default function MentorDashboard() {
 
           {/* ── MESSAGES ──────────────────────────────────── */}
           {activeNav === 'messages' && (
-            <div className="flex h-[calc(100vh-72px)]">
+            <div className="flex h-[calc(100vh-72px)] -mx-4 md:-mx-8 -mt-4 md:-mt-6">
               {/* Left panel: contacts */}
-              <div className="w-72 flex-shrink-0 bg-surface border-r border-outline-variant/20 flex flex-col">
+              <div className={`${selectedChatUser ? 'hidden md:flex' : 'flex'} w-full md:w-72 flex-shrink-0 flex-col bg-surface border-r border-outline-variant/20`}>
                 <div className="px-4 pt-5 pb-3 border-b border-outline-variant/20">
                   <p className="font-headline text-on-surface font-bold text-base mb-3">Messages</p>
                   <div className="relative">
@@ -886,7 +926,10 @@ export default function MentorDashboard() {
               {selectedChatUser ? (
                 <div className="flex-1 flex flex-col bg-background">
                   {/* Chat header */}
-                  <div className="px-6 py-4 bg-surface border-b border-outline-variant/20 flex items-center gap-3">
+                  <div className="px-4 md:px-6 py-4 bg-surface border-b border-outline-variant/20 flex items-center gap-3">
+                    <button className="md:hidden text-on-surface-variant hover:text-on-surface" onClick={() => setSelectedChatUser(null)}>
+                      <span className="material-symbols-outlined">arrow_back</span>
+                    </button>
                     <div className="w-9 h-9 rounded-full bg-tertiary/15 flex items-center justify-center text-tertiary text-xs font-bold flex-shrink-0">
                       {selectedChatUser.avatar || selectedChatUser.name?.[0] || '?'}
                     </div>
@@ -1010,6 +1053,24 @@ export default function MentorDashboard() {
 
         </main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-sm border-t border-outline-variant/20 z-30">
+        <div className="flex items-center justify-around py-1">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveNav(item.id)}
+              className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg transition-all min-w-0 flex-1 ${
+                activeNav === item.id ? 'text-primary' : 'text-on-surface-variant'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+              <span className="text-[9px] font-label font-semibold leading-tight truncate w-full text-center">{item.label.split(' ')[0]}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   )
 }
