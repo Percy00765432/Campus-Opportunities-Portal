@@ -72,6 +72,18 @@ npm run build
 
 ---
 
+## Assigning User Roles
+
+By default, all new sign-ups are assigned the `student` role. To assign a different role (admin or mentor):
+
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Open your project → **Table Editor** → `users` table
+3. Find the user by email
+4. Edit the `role` column and set it to `admin` or `mentor`
+5. Sign out and sign back in — the app will redirect you to the correct dashboard
+
+---
+
 ## Project Structure
 
 ```
