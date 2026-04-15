@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useTheme } from '../hooks/useTheme'
 
 const STATUS_MAP = {
   reviewing: { label: 'Reviewing',    cls: 'status-reviewing', icon: 'pending' },
@@ -31,6 +32,7 @@ const BAR_COLORS = ['bg-primary', 'bg-tertiary', 'bg-secondary', 'bg-error', 'bg
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const { dark, toggle: toggleTheme } = useTheme()
 
   const [activeNav, setActiveNav]         = useState('dashboard')
   const [sidebarOpen, setSidebarOpen]       = useState(true)
@@ -437,6 +439,16 @@ export default function AdminDashboard() {
                 className="pl-9 pr-4 py-2 bg-surface-container-low rounded-full text-xs text-on-surface placeholder:text-on-surface-variant outline-none w-52 focus:w-64 transition-all duration-200"
               />
             </div>
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors"
+              title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
+                {dark ? 'light_mode' : 'dark_mode'}
+              </span>
+            </button>
+
             <div ref={notifRef} className="relative">
               <button
                 onClick={() => setNotifOpen((v) => !v)}

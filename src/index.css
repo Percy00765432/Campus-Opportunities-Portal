@@ -3,10 +3,84 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light mode ── */
+  :root {
+    --c-primary:                  56 86 196;
+    --c-primary-container:        109 137 250;
+    --c-primary-dim:              41 73 183;
+    --c-on-primary:               250 248 255;
+    --c-on-primary-container:     0 10 54;
+    --c-secondary:                82 96 116;
+    --c-secondary-container:      213 227 252;
+    --c-on-secondary:             248 248 255;
+    --c-on-secondary-container:   69 83 103;
+    --c-tertiary:                 111 85 125;
+    --c-tertiary-container:       239 207 254;
+    --c-on-tertiary:              255 246 253;
+    --c-error:                    168 54 75;
+    --c-error-container:          249 115 134;
+    --c-on-error:                 255 247 247;
+    --c-background:               247 249 251;
+    --c-on-background:            44 52 55;
+    --c-surface:                  247 249 251;
+    --c-surface-bright:           247 249 251;
+    --c-surface-dim:              212 219 223;
+    --c-surface-container:        234 239 242;
+    --c-surface-container-high:   227 233 237;
+    --c-surface-container-highest:220 228 232;
+    --c-surface-container-low:    240 244 247;
+    --c-surface-container-lowest: 255 255 255;
+    --c-on-surface:               44 52 55;
+    --c-on-surface-variant:       89 96 100;
+    --c-outline:                  116 124 128;
+    --c-outline-variant:          172 179 183;
+    --c-inverse-surface:          11 15 16;
+    --c-inverse-on-surface:       154 157 159;
+    --c-inverse-primary:          109 137 250;
+    --c-surface-tint:             56 86 196;
+  }
+
+  /* ── Dark mode ── */
+  .dark {
+    --c-primary:                  168 191 255;
+    --c-primary-container:        30 58 138;
+    --c-primary-dim:              141 168 240;
+    --c-on-primary:               0 18 88;
+    --c-on-primary-container:     214 226 255;
+    --c-secondary:                181 201 216;
+    --c-secondary-container:      37 53 69;
+    --c-on-secondary:             14 30 43;
+    --c-on-secondary-container:   181 201 216;
+    --c-tertiary:                 214 184 230;
+    --c-tertiary-container:       61 38 80;
+    --c-on-tertiary:              38 20 56;
+    --c-error:                    255 179 187;
+    --c-error-container:          92 21 38;
+    --c-on-error:                 92 0 17;
+    --c-background:               17 21 24;
+    --c-on-background:            221 227 230;
+    --c-surface:                  17 21 24;
+    --c-surface-bright:           26 31 34;
+    --c-surface-dim:              13 16 18;
+    --c-surface-container:        30 36 40;
+    --c-surface-container-high:   35 42 46;
+    --c-surface-container-highest:42 49 53;
+    --c-surface-container-low:    25 30 33;
+    --c-surface-container-lowest: 22 27 30;
+    --c-on-surface:               221 227 230;
+    --c-on-surface-variant:       141 148 153;
+    --c-outline:                  141 148 153;
+    --c-outline-variant:          63 72 76;
+    --c-inverse-surface:          221 227 230;
+    --c-inverse-on-surface:       44 52 55;
+    --c-inverse-primary:          56 86 196;
+    --c-surface-tint:             168 191 255;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #f7f9fb;
-    color: #2c3437;
+    background-color: rgb(var(--c-background));
+    color: rgb(var(--c-on-surface));
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -53,6 +127,10 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     background: rgba(255, 255, 255, 0.82);
+  }
+
+  .dark .glass-panel {
+    background: rgba(22, 27, 30, 0.82);
   }
 
   .card {
