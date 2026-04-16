@@ -38,6 +38,10 @@ export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen]       = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [searchVal, setSearchVal]         = useState('')
+  const [profileEdit, setProfileEdit] = useState(false)
+  const [profileForm, setProfileForm] = useState({ name: '', department: '', title: '' })
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileSaved, setProfileSaved] = useState(false)
   const [activeTab, setActiveTab]         = useState('all')
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [focusForm, setFocusForm]         = useState(false)
@@ -104,6 +108,22 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchApplications()  }, [fetchApplications])
   useEffect(() => { fetchOpportunities() }, [fetchOpportunities])
+  useEffect(() => {
+    if (user) setProfileForm({ name: user.name || '', department: user.department || '', title: user.title || '' })
+  }, [user])
+
+  async function saveProfile() {
+    setProfileSaving(true)
+    await supabase.from('profiles').update({
+      name: profileForm.name,
+      department: profileForm.department,
+      title: profileForm.title,
+    }).eq('id', user.id)
+    setProfileSaving(false)
+    setProfileEdit(false)
+    setProfileSaved(true)
+    setTimeout(() => setProfileSaved(false), 3000)
+  }
   useEffect(() => {
     if (activeNav === 'users') fetchUsers()
   }, [activeNav, fetchUsers])
@@ -1262,31 +1282,73 @@ export default function AdminDashboard() {
               <h2 className="font-headline text-on-surface font-bold text-xl mb-6">Settings</h2>
 
               <div className="card p-6 mb-6">
-                <p className="section-title">Admin Profile</p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="section-title mb-0">Admin Profile</p>
+                  {!profileEdit && (
+                    <button onClick={() => setProfileEdit(true)} className="btn-secondary flex items-center gap-2 py-2 px-4 text-sm">
+                      <span className="material-symbols-outlined text-[16px]">edit</span>
+                      Edit Profile
+                    </button>
+                  )}
+                </div>
+
+                {profileSaved && (
+                  <div className="flex items-center gap-2 bg-tertiary-container/40 text-tertiary border border-tertiary/20 rounded-lg px-4 py-3 mb-4 text-sm font-label">
+                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                    Profile updated successfully
+                  </div>
+                )}
+
                 <div className="flex items-center gap-5 mb-6">
                   <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xl font-bold font-headline flex-shrink-0">
-                    {user?.avatar || user?.name?.[0] || '?'}
+                    {user?.avatar || profileForm.name?.[0] || user?.name?.[0] || '?'}
                   </div>
                   <div>
-                    <p className="font-headline text-on-surface font-bold text-lg">{user?.name}</p>
+                    <p className="font-headline text-on-surface font-bold text-lg">{profileForm.name || user?.name}</p>
                     <p className="text-on-surface-variant text-sm font-label">{user?.email}</p>
                     <span className="status-badge status-approved mt-1 inline-flex">Administrator</span>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Department', value: user?.department || '—', icon: 'account_balance' },
-                    { label: 'Job Title',  value: user?.title     || '—', icon: 'work' },
-                  ].map((f) => (
-                    <div key={f.label} className="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg">
-                      <span className="material-symbols-outlined text-on-surface-variant text-[18px]">{f.icon}</span>
-                      <div>
-                        <p className="text-xs text-on-surface-variant font-label uppercase tracking-wide">{f.label}</p>
-                        <p className="text-sm text-on-surface font-label font-semibold">{f.value}</p>
-                      </div>
+
+                {profileEdit ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Full Name</label>
+                      <input className="input-field" value={profileForm.name} onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))} />
                     </div>
-                  ))}
-                </div>
+                    <div>
+                      <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Department</label>
+                      <input className="input-field" value={profileForm.department} onChange={e => setProfileForm(f => ({ ...f, department: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5">Job Title</label>
+                      <input className="input-field" value={profileForm.title} onChange={e => setProfileForm(f => ({ ...f, title: e.target.value }))} />
+                    </div>
+                    <div className="flex gap-3 pt-1">
+                      <button onClick={saveProfile} disabled={profileSaving} className="btn-primary flex-1 py-2.5 disabled:opacity-60">
+                        {profileSaving ? 'Saving…' : 'Save Changes'}
+                      </button>
+                      <button onClick={() => { setProfileEdit(false); setProfileForm({ name: user?.name || '', department: user?.department || '', title: user?.title || '' }) }} className="btn-secondary flex-1 py-2.5">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Department', value: profileForm.department || '—', icon: 'account_balance' },
+                      { label: 'Job Title',  value: profileForm.title     || '—', icon: 'work' },
+                    ].map((f) => (
+                      <div key={f.label} className="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg">
+                        <span className="material-symbols-outlined text-on-surface-variant text-[18px]">{f.icon}</span>
+                        <div>
+                          <p className="text-xs text-on-surface-variant font-label uppercase tracking-wide">{f.label}</p>
+                          <p className="text-sm text-on-surface font-label font-semibold">{f.value}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="card p-6 mb-6">
