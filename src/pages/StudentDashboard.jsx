@@ -38,6 +38,7 @@ export default function StudentDashboard() {
   const [sidebarOpen, setSidebarOpen]   = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [notifOpen, setNotifOpen]     = useState(false)
+  const [selectedOpp, setSelectedOpp] = useState(null)
   const [profileEdit, setProfileEdit] = useState(false)
   const [profileForm, setProfileForm] = useState({ name: '', department: '', year: '' })
   const [profileSaving, setProfileSaving] = useState(false)
@@ -692,7 +693,7 @@ export default function StudentDashboard() {
                   {filtered.map((opp) => {
                     const meta = CATEGORY_ICON[opp.category] ?? { icon: 'work', color: 'text-primary bg-primary/10' }
                     return (
-                      <div key={opp.id} className="card p-5 flex flex-col gap-3 hover:shadow-editorial transition-shadow">
+                      <div key={opp.id} className="card p-5 flex flex-col gap-3 hover:shadow-editorial transition-shadow cursor-pointer" onClick={() => setSelectedOpp(opp)}>
                         <div className="flex items-start gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${meta.color}`}>
                             <span className="material-symbols-outlined text-[18px]">{meta.icon}</span>
@@ -715,7 +716,7 @@ export default function StudentDashboard() {
                         </div>
                         <div className="flex items-center gap-2 mt-auto pt-1">
                           <button
-                            onClick={() => toggleApply(opp.id)}
+                            onClick={(e) => { e.stopPropagation(); toggleApply(opp.id) }}
                             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-semibold font-label transition-all ${
                               appliedIds.has(opp.id) ? 'bg-tertiary-container text-tertiary' : 'btn-primary py-2 text-xs'
                             }`}
@@ -724,7 +725,7 @@ export default function StudentDashboard() {
                             {appliedIds.has(opp.id) ? 'Applied' : 'Apply'}
                           </button>
                           <button
-                            onClick={() => toggleBookmark(opp.id)}
+                            onClick={(e) => { e.stopPropagation(); toggleBookmark(opp.id) }}
                             className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
                               bookmarks.has(opp.id) ? 'bg-primary/10 text-primary' : 'bg-surface-container text-on-surface-variant hover:text-primary'
                             }`}
@@ -863,7 +864,7 @@ export default function StudentDashboard() {
                   {opportunities.filter((o) => bookmarks.has(o.id)).map((opp) => {
                     const meta = CATEGORY_ICON[opp.category] ?? { icon: 'work', color: 'text-primary bg-primary/10' }
                     return (
-                      <div key={opp.id} className="card p-5 flex flex-col gap-3 hover:shadow-editorial transition-shadow">
+                      <div key={opp.id} className="card p-5 flex flex-col gap-3 hover:shadow-editorial transition-shadow cursor-pointer" onClick={() => setSelectedOpp(opp)}>
                         <div className="flex items-start gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${meta.color}`}>
                             <span className="material-symbols-outlined text-[18px]">{meta.icon}</span>
@@ -873,7 +874,7 @@ export default function StudentDashboard() {
                             <p className="text-xs text-on-surface-variant font-label mt-0.5 truncate">{opp.department}</p>
                           </div>
                           <button
-                            onClick={() => toggleBookmark(opp.id)}
+                            onClick={(e) => { e.stopPropagation(); toggleBookmark(opp.id) }}
                             className="text-primary hover:text-on-surface-variant transition-colors flex-shrink-0"
                             title="Remove bookmark"
                           >
@@ -892,7 +893,7 @@ export default function StudentDashboard() {
                           {opp.vacancies && <span>{opp.vacancies} spots</span>}
                         </div>
                         <button
-                          onClick={() => toggleApply(opp.id)}
+                          onClick={(e) => { e.stopPropagation(); toggleApply(opp.id) }}
                           className={`flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-semibold font-label transition-all mt-auto ${
                             appliedIds.has(opp.id) ? 'bg-tertiary-container text-tertiary' : 'btn-primary py-2 text-xs'
                           }`}
@@ -1152,6 +1153,77 @@ export default function StudentDashboard() {
 
         </main>
       </div>
+
+      {/* Opportunity Detail Modal */}
+      {selectedOpp && (() => {
+        const meta = CATEGORY_ICON[selectedOpp.category] ?? { icon: 'work', color: 'text-primary bg-primary/10' }
+        return (
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" onClick={() => setSelectedOpp(null)}>
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <div className="relative bg-surface-container-lowest rounded-t-2xl md:rounded-2xl w-full md:max-w-lg max-h-[90vh] overflow-y-auto shadow-elevated" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div className="flex items-start gap-4 p-6 border-b border-outline-variant/20">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${meta.color}`}>
+                  <span className="material-symbols-outlined text-[22px]">{meta.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-headline text-on-surface font-bold text-lg leading-snug">{selectedOpp.title}</h2>
+                  <p className="text-sm text-on-surface-variant font-label mt-0.5">{selectedOpp.department}</p>
+                </div>
+                <button onClick={() => setSelectedOpp(null)} className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors flex-shrink-0">
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant">close</span>
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-5">
+                {/* Meta pills */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="status-badge bg-surface-container text-on-surface-variant">{selectedOpp.category}</span>
+                  {selectedOpp.stipend && <span className="status-badge bg-primary/10 text-primary">{selectedOpp.stipend}</span>}
+                  {selectedOpp.vacancies && <span className="status-badge bg-surface-container text-on-surface-variant">{selectedOpp.vacancies} spots</span>}
+                  <span className="status-badge bg-error/10 text-error">Due {new Date(selectedOpp.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <p className="text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-2">Description</p>
+                  <p className="text-sm text-on-surface font-label leading-relaxed">{selectedOpp.description}</p>
+                </div>
+
+                {/* Eligibility */}
+                {selectedOpp.eligibility && (
+                  <div>
+                    <p className="text-xs font-label font-semibold text-on-surface-variant uppercase tracking-widest mb-2">Eligibility</p>
+                    <p className="text-sm text-on-surface font-label leading-relaxed">{selectedOpp.eligibility}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer actions */}
+              <div className="flex gap-3 px-6 pb-6">
+                <button
+                  onClick={() => { toggleApply(selectedOpp.id); setSelectedOpp(null) }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold font-label transition-all ${
+                    appliedIds.has(selectedOpp.id) ? 'bg-tertiary-container text-tertiary' : 'btn-primary'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">{appliedIds.has(selectedOpp.id) ? 'check' : 'send'}</span>
+                  {appliedIds.has(selectedOpp.id) ? 'Already Applied' : 'Apply Now'}
+                </button>
+                <button
+                  onClick={() => toggleBookmark(selectedOpp.id)}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                    bookmarks.has(selectedOpp.id) ? 'bg-primary/10 text-primary' : 'bg-surface-container text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">{bookmarks.has(selectedOpp.id) ? 'bookmark' : 'bookmark_border'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-sm border-t border-outline-variant/20 z-30">
